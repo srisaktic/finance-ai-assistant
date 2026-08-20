@@ -29,3 +29,7 @@ jobs:
 
       - name: Build Docker image
         run: docker build -t finance-ai-assistant .
+
+      - name: Deploy to Render
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
