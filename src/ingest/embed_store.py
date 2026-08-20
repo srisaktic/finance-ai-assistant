@@ -1,7 +1,7 @@
 import json
 import os
 from pathlib import Path
-
+from src.qdrant_client_factory import get_qdrant_client
 import voyageai
 from dotenv import load_dotenv
 from qdrant_client import QdrantClient
@@ -15,7 +15,8 @@ EMBED_MODEL = "voyage-4"   # covered by Voyage's 200M free-token allowance
 BATCH_SIZE = 100
 
 voyage_client = voyageai.Client(api_key=os.getenv("VOYAGE_API_KEY"))
-qdrant_client = QdrantClient(host="localhost", port=6333)
+
+qdrant_client = get_qdrant_client()
 
 
 def load_all_chunks() -> list[dict]:
@@ -42,11 +43,18 @@ def main():
     if qdrant_client.collection_exists(COLLECTION_NAME):
             qdrant_client.delete_collection(COLLECTION_NAME)
 
+
     qdrant_client.create_collection(
         collection_name=COLLECTION_NAME,
         vectors_config=VectorParams(size=vector_size, distance=Distance.COSINE),
-)
+    )
 
+    qdrant_client.create_payload_index(
+        collection_name=COLLECTION_NAME,
+        field_name="ticker",
+        field_schema="keyword",
+    )
+    
     point_id = 0
     for batch_start in range(0, len(chunks), BATCH_SIZE):
         batch = chunks[batch_start:batch_start + BATCH_SIZE]

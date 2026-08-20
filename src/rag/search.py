@@ -14,8 +14,8 @@ voyage_client = voyageai.Client(api_key=os.getenv("VOYAGE_API_KEY"))
 
 # qdrant_client = QdrantClient(host="localhost", port=6333)
 
-QDRANT_HOST = os.getenv("QDRANT_HOST", "localhost")
-qdrant_client = QdrantClient(host=QDRANT_HOST, port=6333)
+from src.qdrant_client_factory import get_qdrant_client
+qdrant_client = get_qdrant_client()
 
 
 def embed_query(query: str) -> list[float]:
