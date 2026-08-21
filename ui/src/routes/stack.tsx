@@ -4,7 +4,10 @@ export const Route = createFileRoute("/stack")({
   head: () => ({
     meta: [
       { title: "Finance AI Assistant — Tech Stack" },
-      { name: "description", content: "The technologies powering the Finance AI Assistant." },
+      {
+        name: "description",
+        content: "The technologies powering the Finance AI Assistant.",
+      },
     ],
   }),
   component: StackPage,
@@ -12,14 +15,35 @@ export const Route = createFileRoute("/stack")({
 
 const STACK = [
   { category: "LLM", items: ["Google Gemini (gemini-3.1-flash-lite)"] },
-  { category: "Embeddings & Reranking", items: ["Voyage AI (voyage-4 embeddings, rerank-2.5)"] },
+  {
+    category: "Embeddings & Reranking",
+    items: ["Voyage AI (voyage-4 embeddings, rerank-2.5)"],
+  },
   { category: "Vector Database", items: ["Qdrant Cloud"] },
-  { category: "Agent Orchestration", items: ["Custom tool-calling loop (Gemini function calling)"] },
+  {
+    category: "Agent Orchestration",
+    items: ["Custom tool-calling loop (Gemini function calling)"],
+  },
   { category: "Backend API", items: ["FastAPI (Python)"] },
-  { category: "Data Sources", items: ["SEC EDGAR (10-K filings)", "yfinance (live market data)", "Tavily (news search)"] },
+  {
+    category: "Data Sources",
+    items: [
+      "SEC EDGAR (10-K filings)",
+      "yfinance (live market data)",
+      "Tavily (news search)",
+    ],
+  },
   { category: "Containerization", items: ["Docker"] },
-  { category: "CI/CD", items: ["GitHub Actions — test, build, and deploy automatically on every push"] },
-  { category: "Deployment", items: ["Render (backend API)", "Qdrant Cloud (vector database)"] },
+  {
+    category: "CI/CD",
+    items: [
+      "GitHub Actions — test, build, and deploy automatically on every push",
+    ],
+  },
+  {
+    category: "Deployment",
+    items: ["Render (backend API)", "Qdrant Cloud (vector database)"],
+  },
   { category: "Frontend", items: ["React, TanStack Start, Tailwind CSS"] },
   { category: "Testing", items: ["pytest"] },
 ];

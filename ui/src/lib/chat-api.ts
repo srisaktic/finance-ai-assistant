@@ -7,8 +7,8 @@
  * Expected contract (adjust `body`/`readAnswer` below if yours differs):
  *   POST <endpoint>   { "question": "..." }  ->  { "answer": "..." }
  */
-export const DEFAULT_ENDPOINT = import.meta.env.VITE_API_URL || "http://localhost:8000/ask";
-
+export const DEFAULT_ENDPOINT =
+  import.meta.env.VITE_API_URL || "http://localhost:8000/ask";
 
 const STORAGE_KEY = "finance-ai-endpoint";
 
@@ -18,14 +18,22 @@ export function getEndpoint(): string {
 }
 
 export function setEndpoint(url: string) {
-  if (typeof window !== "undefined") window.localStorage.setItem(STORAGE_KEY, url);
+  if (typeof window !== "undefined")
+    window.localStorage.setItem(STORAGE_KEY, url);
 }
 
 function readAnswer(data: unknown): string {
   if (typeof data === "string") return data;
   if (data && typeof data === "object") {
     const d = data as Record<string, unknown>;
-    for (const key of ["answer", "response", "message", "output", "text", "result"]) {
+    for (const key of [
+      "answer",
+      "response",
+      "message",
+      "output",
+      "text",
+      "result",
+    ]) {
       const v = d[key];
       if (typeof v === "string") return v;
     }
@@ -33,7 +41,10 @@ function readAnswer(data: unknown): string {
   return JSON.stringify(data, null, 2);
 }
 
-export async function askBackend(question: string, signal?: AbortSignal): Promise<string> {
+export async function askBackend(
+  question: string,
+  signal?: AbortSignal,
+): Promise<string> {
   const res = await fetch(getEndpoint(), {
     method: "POST",
     headers: { "Content-Type": "application/json" },

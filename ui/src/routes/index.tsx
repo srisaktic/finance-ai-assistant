@@ -1,10 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ArrowUp, ExternalLink,Info, Layers, MessageSquarePlus,  } from "lucide-react";
+import {
+  ArrowUp,
+  ExternalLink,
+  Info,
+  Layers,
+  MessageSquarePlus,
+} from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import { DEFAULT_ENDPOINT, askBackend, getEndpoint, setEndpoint } from "@/lib/chat-api";
+import {
+  DEFAULT_ENDPOINT,
+  askBackend,
+  getEndpoint,
+  setEndpoint,
+} from "@/lib/chat-api";
 import ReactMarkdown from "react-markdown";
-
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -104,7 +114,8 @@ function Index() {
             New Conversation
           </button>
           <p className="mt-3 px-2 text-[11px] leading-relaxed text-muted-foreground">
-            Covers Apple, Microsoft, and Nvidia — SEC filings, stock prices, and news.
+            Covers Apple, Microsoft, and Nvidia — SEC filings, stock prices, and
+            news.
           </p>
           <nav className="mt-8 flex flex-col gap-1">
             <span className="px-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -122,7 +133,7 @@ function Index() {
             ))}
           </nav>
 
-                    <div className="mt-8">
+          <div className="mt-8">
             <span className="px-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
               My Other Projects
             </span>
@@ -135,7 +146,9 @@ function Index() {
             >
               <ExternalLink className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
               <span className="flex flex-col gap-0.5">
-                <span className="text-sm text-foreground">Phishing Detection</span>
+                <span className="text-sm text-foreground">
+                  Phishing Detection
+                </span>
                 <span className="text-[11px] text-muted-foreground">
                   Multimodal — text, URL &amp; image classifiers
                 </span>
@@ -150,7 +163,9 @@ function Index() {
             >
               <ExternalLink className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
               <span className="flex flex-col gap-0.5">
-                <span className="text-sm text-foreground">Used Car Price Predictor</span>
+                <span className="text-sm text-foreground">
+                  Used Car Price Predictor
+                </span>
                 <span className="text-[11px] text-muted-foreground">
                   BMW valuation — XGBoost, deployed on AWS
                 </span>
@@ -158,26 +173,22 @@ function Index() {
             </a>
           </div>
 
-
-
-
-                  <div className="mt-auto border-t border-hairline pt-6">
-          <Link
-            to="/stack"
-            className="flex w-full items-center gap-3 rounded-md px-2 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground"
-          >
-            <Layers className="size-4 shrink-0" />
-            Tech Stack
-          </Link>
-          <button
-            onClick={() => setView(view === "about" ? "chat" : "about")}
-            className="flex w-full items-center gap-3 rounded-md px-2 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground"
-          >
-            <Info className="size-4 shrink-0" />
-            About
-          </button>
-        </div>
-             
+          <div className="mt-auto border-t border-hairline pt-6">
+            <Link
+              to="/stack"
+              className="flex w-full items-center gap-3 rounded-md px-2 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground"
+            >
+              <Layers className="size-4 shrink-0" />
+              Tech Stack
+            </Link>
+            <button
+              onClick={() => setView(view === "about" ? "chat" : "about")}
+              className="flex w-full items-center gap-3 rounded-md px-2 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground"
+            >
+              <Info className="size-4 shrink-0" />
+              About
+            </button>
+          </div>
         </div>
       </aside>
 
@@ -226,18 +237,22 @@ function Index() {
                     </span>
                   </div>
                   <div
-                  className={`max-w-[56ch] text-sm leading-relaxed ${
-                    m.error ? "text-destructive" : "text-foreground/80"
-                  }`}
-                >
-                  <ReactMarkdown
-                    components={{
-                      strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
-                    }}
+                    className={`max-w-[56ch] text-sm leading-relaxed ${
+                      m.error ? "text-destructive" : "text-foreground/80"
+                    }`}
                   >
-                    {m.content}
-                  </ReactMarkdown>
-                </div>
+                    <ReactMarkdown
+                      components={{
+                        strong: ({ children }) => (
+                          <strong className="font-semibold text-foreground">
+                            {children}
+                          </strong>
+                        ),
+                      }}
+                    >
+                      {m.content}
+                    </ReactMarkdown>
+                  </div>
                 </div>
               ),
             )}
@@ -286,8 +301,8 @@ function Index() {
               </button>
             </form>
             <p className="mt-3 text-center text-[10px] text-muted-foreground">
-              Financial insights are for informational purposes only. Crafted by Sri
-              Sakticharan.
+              Financial insights are for informational purposes only. Crafted by
+              Sri Sakticharan.
             </p>
           </div>
         </div>
@@ -296,7 +311,9 @@ function Index() {
         {view === "about" && (
           <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/95 p-8">
             <div className="w-full max-w-md rounded-2xl bg-surface p-8 ring-1 ring-hairline">
-              <h2 className="mb-4 text-xl font-medium tracking-tight">About Project</h2>
+              <h2 className="mb-4 text-xl font-medium tracking-tight">
+                About Project
+              </h2>
               <p className="mb-6 text-sm leading-relaxed text-muted-foreground">
                 Finance AI Assistant is a focused interface for asking financial
                 questions and reading back clear, considered answers from the
@@ -313,7 +330,9 @@ function Index() {
                   <span className="font-medium uppercase text-muted-foreground">
                     Interface
                   </span>
-                  <span className="text-foreground">Single-page chat console</span>
+                  <span className="text-foreground">
+                    Single-page chat console
+                  </span>
                 </div>
                 <div className="flex justify-between border-b border-hairline py-2 text-xs">
                   <span className="font-medium uppercase text-muted-foreground">
