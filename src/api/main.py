@@ -8,7 +8,10 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8080"],
+    allow_origins=[
+        "http://localhost:8080",
+        "https://finance-ai-ui-vercel.vercel.app",
+    ],
     allow_methods=["*"],
     allow_headers=["*"],
 )
