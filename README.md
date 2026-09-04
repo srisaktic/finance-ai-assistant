@@ -50,6 +50,7 @@ The RAG path specifically: filings are chunked (~400 tokens, structure-aware) an
 Every push to `main` runs the test suite and builds the Docker image in GitHub Actions; a deploy to Render is only triggered — via a private deploy hook — if both succeed. The frontend deploys separately on Vercel. Qdrant Cloud is kept from sleeping via a scheduled GitHub Action that pings it every few days.
 
 ## Project structure
+<img width="2017" height="2025" alt="image" src="https://github.com/user-attachments/assets/dd38d15f-8f27-480d-a566-adb797e4ba8c" />
 
 
 ## Running it locally
