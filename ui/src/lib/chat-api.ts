@@ -4,8 +4,10 @@
  * Set the endpoint once here (or at runtime from the sidebar "Backend" field,
  * which stores it in localStorage under `finance-ai-endpoint`).
  *
- * Expected contract (adjust `body`/`readAnswer` below if yours differs):
- *   POST <endpoint>   { "question": "..." }  ->  { "answer": "..." }
+ * Expected contract (adjust `body`/`parseAskResponse` below if yours differs):
+ *   POST <endpoint>   { "question": "...", "previous_interaction_id": "..." | null }
+ *     -> { "answer": "...", "interaction_id": "..." }
+ *   POST <endpoint minus "/ask" plus "/summarize">   { "text": "..." }  ->  { "summary": "..." }
  */
 export const DEFAULT_ENDPOINT =
   import.meta.env.VITE_API_URL || "http://localhost:8000/ask";
@@ -22,10 +24,20 @@ export function setEndpoint(url: string) {
     window.localStorage.setItem(STORAGE_KEY, url);
 }
 
-function readAnswer(data: unknown): string {
-  if (typeof data === "string") return data;
+function summarizeEndpointFrom(askEndpoint: string): string {
+  return askEndpoint.replace(/\/ask\/?$/, "/summarize");
+}
+
+export type AskResult = {
+  answer: string;
+  interactionId?: string;
+};
+
+function parseAskResponse(data: unknown): AskResult {
+  if (typeof data === "string") return { answer: data };
   if (data && typeof data === "object") {
     const d = data as Record<string, unknown>;
+    let answer = "";
     for (const key of [
       "answer",
       "response",
@@ -35,20 +47,32 @@ function readAnswer(data: unknown): string {
       "result",
     ]) {
       const v = d[key];
-      if (typeof v === "string") return v;
+      if (typeof v === "string") {
+        answer = v;
+        break;
+      }
     }
+    const interactionId =
+      typeof d["interaction_id"] === "string"
+        ? (d["interaction_id"] as string)
+        : undefined;
+    if (answer) return { answer, interactionId };
   }
-  return JSON.stringify(data, null, 2);
+  return { answer: JSON.stringify(data, null, 2) };
 }
 
 export async function askBackend(
   question: string,
+  previousInteractionId?: string,
   signal?: AbortSignal,
-): Promise<string> {
+): Promise<AskResult> {
   const res = await fetch(getEndpoint(), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question }),
+    body: JSON.stringify({
+      question,
+      previous_interaction_id: previousInteractionId ?? null,
+    }),
     signal: signal ?? null,
   });
 
@@ -58,7 +82,25 @@ export async function askBackend(
 
   const contentType = res.headers.get("content-type") ?? "";
   if (contentType.includes("application/json")) {
-    return readAnswer(await res.json());
+    return parseAskResponse(await res.json());
   }
-  return await res.text();
+  return { answer: await res.text() };
+}
+
+export async function summarizeBackend(text: string): Promise<string> {
+  const res = await fetch(summarizeEndpointFrom(getEndpoint()), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text }),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Backend responded with ${res.status} ${res.statusText}`);
+  }
+
+  const data = await res.json();
+  if (data && typeof data === "object" && typeof (data as any).summary === "string") {
+    return (data as any).summary;
+  }
+  return typeof data === "string" ? data : JSON.stringify(data);
 }

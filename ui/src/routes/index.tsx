@@ -2,10 +2,13 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowUp,
+  Check,
+  Copy,
   ExternalLink,
   Info,
   Layers,
   MessageSquarePlus,
+  Sparkles,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import {
@@ -13,6 +16,7 @@ import {
   askBackend,
   getEndpoint,
   setEndpoint,
+  summarizeBackend,
 } from "@/lib/chat-api";
 import ReactMarkdown from "react-markdown";
 
@@ -41,6 +45,8 @@ type Message = {
   role: "user" | "assistant";
   content: string;
   error?: boolean;
+  brief?: string;
+  viewMode?: "full" | "brief";
 };
 
 const SUGGESTIONS = [
@@ -55,7 +61,13 @@ function Index() {
   const [loading, setLoading] = useState(false);
   const [view, setView] = useState<"chat" | "about">("chat");
   const [endpoint, setEndpointState] = useState(DEFAULT_ENDPOINT);
+  const [interactionId, setInteractionId] = useState<string | undefined>(
+    undefined,
+  );
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [briefLoadingId, setBriefLoadingId] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     setEndpointState(getEndpoint());
@@ -64,6 +76,13 @@ function Index() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
+
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
+  }, [input]);
 
   async function send(question: string) {
     const trimmed = question.trim();
@@ -76,7 +95,11 @@ function Index() {
     ]);
     setLoading(true);
     try {
-      const answer = await askBackend(trimmed);
+      const { answer, interactionId: newId } = await askBackend(
+        trimmed,
+        interactionId,
+      );
+      if (newId) setInteractionId(newId);
       setMessages((prev) => [
         ...prev,
         { id: crypto.randomUUID(), role: "assistant", content: answer },
@@ -98,6 +121,51 @@ function Index() {
     }
   }
 
+  async function copyMessage(id: string, content: string) {
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopiedId(id);
+      setTimeout(() => {
+        setCopiedId((cur) => (cur === id ? null : cur));
+      }, 1500);
+    } catch {
+      // clipboard unavailable — fail silently rather than show a broken button
+    }
+  }
+
+  async function toggleBrief(id: string) {
+    const msg = messages.find((m) => m.id === id);
+    if (!msg) return;
+
+    if (msg.viewMode === "brief") {
+      setMessages((prev) =>
+        prev.map((m) => (m.id === id ? { ...m, viewMode: "full" } : m)),
+      );
+      return;
+    }
+
+    if (msg.brief) {
+      setMessages((prev) =>
+        prev.map((m) => (m.id === id ? { ...m, viewMode: "brief" } : m)),
+      );
+      return;
+    }
+
+    setBriefLoadingId(id);
+    try {
+      const summary = await summarizeBackend(msg.content);
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === id ? { ...m, brief: summary, viewMode: "brief" } : m,
+        ),
+      );
+    } catch {
+      // leave the message as-is if summarizing fails
+    } finally {
+      setBriefLoadingId(null);
+    }
+  }
+
   return (
     <div className="flex h-screen w-full bg-background font-sans text-foreground">
       {/* Sidebar */}
@@ -107,6 +175,7 @@ function Index() {
             onClick={() => {
               setMessages([]);
               setView("chat");
+              setInteractionId(undefined);
             }}
             className="flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground ring-1 ring-primary transition-colors hover:opacity-90"
           >
@@ -250,9 +319,46 @@ function Index() {
                         ),
                       }}
                     >
-                      {m.content}
+                      {m.viewMode === "brief" && m.brief ? m.brief : m.content}
                     </ReactMarkdown>
                   </div>
+                  {!m.error && (
+                    <div className="flex items-center gap-4">
+                      <button
+                        onClick={() =>
+                          copyMessage(
+                            m.id,
+                            m.viewMode === "brief" && m.brief
+                              ? m.brief
+                              : m.content,
+                          )
+                        }
+                        className="flex items-center gap-1.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+                      >
+                        {copiedId === m.id ? (
+                          <>
+                            <Check className="size-3.5" /> Copied
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="size-3.5" /> Copy
+                          </>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => toggleBrief(m.id)}
+                        disabled={briefLoadingId === m.id}
+                        className="flex items-center gap-1.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
+                      >
+                        <Sparkles className="size-3.5" />
+                        {briefLoadingId === m.id
+                          ? "Summarizing..."
+                          : m.viewMode === "brief"
+                            ? "Show full"
+                            : "Brief"}
+                      </button>
+                    </div>
+                  )}
                 </div>
               ),
             )}
@@ -283,19 +389,27 @@ function Index() {
                 e.preventDefault();
                 send(input);
               }}
-              className="relative flex items-center"
+              className="relative flex items-end"
             >
-              <input
+              <textarea
+                ref={textareaRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Inquire about your holdings..."
-                className="w-full rounded-lg bg-surface py-3 pl-4 pr-12 text-sm text-foreground outline-none ring-1 ring-hairline placeholder:text-muted-foreground/70 focus:ring-ring"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    send(input);
+                  }
+                }}
+                placeholder="Inquire about your holdings... (Shift+Enter for a new line)"
+                rows={1}
+                className="max-h-40 w-full resize-none overflow-y-auto rounded-lg bg-surface py-3 pl-4 pr-12 text-sm text-foreground outline-none ring-1 ring-hairline placeholder:text-muted-foreground/70 focus:ring-ring"
               />
               <button
                 type="submit"
                 disabled={loading || !input.trim()}
                 aria-label="Send question"
-                className="absolute right-2 rounded-md bg-primary p-1.5 text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-30"
+                className="absolute bottom-2 right-2 rounded-md bg-primary p-1.5 text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-30"
               >
                 <ArrowUp className="size-4" />
               </button>
