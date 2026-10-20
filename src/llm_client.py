@@ -1,3 +1,4 @@
+from src.config import LLM_PROVIDER
 import os
 from google import genai
 from google.genai import errors as genai_errors
@@ -30,3 +31,18 @@ def call_gemini(**kwargs):
     kwargs.setdefault("model", MODEL)
     track_call("gemini")
     return client.interactions.create(**kwargs)
+
+def generate_text(prompt: str, system: str | None = None, max_tokens: int | None = None) -> str:
+    """Send a prompt, get plain text back, whichever provider is switched on."""
+    if LLM_PROVIDER == "gemini":
+        kwargs = {"input": prompt}
+        if system:
+            kwargs["system_instruction"] = system
+        if max_tokens:
+            kwargs["generation_config"] = {"max_output_tokens": max_tokens}
+        return call_gemini(**kwargs).output_text.strip()
+
+    if LLM_PROVIDER == "azure":
+        raise NotImplementedError("Azure OpenAI isn't added yet")
+
+    raise ValueError(f"Unknown LLM_PROVIDER: {LLM_PROVIDER!r}")

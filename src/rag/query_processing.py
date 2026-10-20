@@ -1,7 +1,7 @@
 from src.config import COMPANY_ALIASES
 #import anthropic
 #from google import genai
-from src.llm_client import call_gemini
+from src.llm_client import generate_text
 import os
 from dotenv import load_dotenv
 
@@ -45,5 +45,4 @@ def rewrite_query(question: str) -> str:
 '''
 
 def rewrite_query(question: str) -> str:
-    interaction = call_gemini(input=REWRITE_PROMPT.format(question=question))
-    return interaction.output_text.strip()
+    return generate_text(REWRITE_PROMPT.format(question=question))
