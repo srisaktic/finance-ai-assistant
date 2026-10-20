@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv
 from src.agent.tools import TOOLS, TOOL_FUNCTIONS
 from src.logger import logger
-from src.llm_client import call_gemini
+from src.llm_client import call_gemini, call_azure
 from src.config import LLM_PROVIDER
 
 load_dotenv()
@@ -77,6 +77,69 @@ def _run_agent_gemini(
     )
 
 
+def _to_azure_tools(tools: list[dict]) -> list[dict]:
+    """Our tool definitions already match Azure's format. We only turn off "strict" mode,
+    because strict mode requires every parameter, and some of ours are optional."""
+    return [{**t, "strict": False} for t in tools]
+
+
+def _run_agent_azure(
+    question: str,
+    previous_interaction_id: str | None = None,
+    max_turns: int = 5,
+) -> tuple[str, str]:
+    logger.info(
+        f"Agent started (Azure) | question: '{question}'"
+        + (" (continuing conversation)" if previous_interaction_id else "")
+    )
+    tools = _to_azure_tools(TOOLS)
+
+    first_call_kwargs = dict(
+        instructions=SYSTEM_INSTRUCTION,
+        input=question,
+        tools=tools,
+    )
+    if previous_interaction_id:
+        first_call_kwargs["previous_response_id"] = previous_interaction_id
+
+    response = call_azure(**first_call_kwargs)
+
+    for turn in range(max_turns):
+        function_calls = [item for item in response.output if item.type == "function_call"]
+
+        if not function_calls:
+            logger.info(f"Agent finished after {turn + 1} turn(s)")
+            return response.output_text.strip(), response.id
+
+        logger.info(f"Turn {turn + 1}: {len(function_calls)} tool call(s) requested")
+
+        function_results = []
+        for call in function_calls:
+            args = json.loads(call.arguments)
+            logger.info(f"  -> {call.name}({args})")
+            tool_fn = TOOL_FUNCTIONS[call.name]
+            result = tool_fn(**args)
+            logger.info(f"  <- {call.name} returned {str(result)[:150]}")
+            function_results.append({
+                "type": "function_call_output",
+                "call_id": call.call_id,
+                "output": json.dumps(result),
+            })
+
+        response = call_azure(
+            instructions=SYSTEM_INSTRUCTION,
+            input=function_results,
+            tools=tools,
+            previous_response_id=response.id,
+        )
+
+    logger.warning(f"Agent hit max_turns ({max_turns}) without finishing")
+    return (
+        "I wasn't able to fully answer this within the allowed number of steps.",
+        response.id,
+    )
+
+
 def run_agent(
     question: str,
     previous_interaction_id: str | None = None,
@@ -87,7 +150,7 @@ def run_agent(
         return _run_agent_gemini(question, previous_interaction_id, max_turns)
 
     if LLM_PROVIDER == "azure":
-        raise NotImplementedError("Azure agent loop isn't added yet")
+        return _run_agent_azure(question, previous_interaction_id, max_turns)
 
     raise ValueError(f"Unknown LLM_PROVIDER: {LLM_PROVIDER!r}")
 
