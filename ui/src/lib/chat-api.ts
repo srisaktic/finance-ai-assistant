@@ -98,9 +98,14 @@ export async function summarizeBackend(text: string): Promise<string> {
     throw new Error(`Backend responded with ${res.status} ${res.statusText}`);
   }
 
-  const data = await res.json();
-  if (data && typeof data === "object" && typeof (data as any).summary === "string") {
-    return (data as any).summary;
+  const data: unknown = await res.json();
+  if (
+    data &&
+    typeof data === "object" &&
+    "summary" in data &&
+    typeof data.summary === "string"
+  ) {
+    return data.summary;
   }
   return typeof data === "string" ? data : JSON.stringify(data);
 }

@@ -14,15 +14,31 @@ export const Route = createFileRoute("/stack")({
 });
 
 const STACK = [
-  { category: "LLM", items: ["Google Gemini (gemini-3.1-flash-lite)"] },
+  {
+    category: "LLM",
+    items: [
+      "Azure OpenAI (gpt-4.1-mini, Responses API)",
+      "Google Gemini (gemini-3.1-flash-lite)",
+      "Switchable with one setting (LLM_PROVIDER)",
+    ],
+  },
   {
     category: "Embeddings & Reranking",
     items: ["Voyage AI (voyage-4 embeddings, rerank-2.5)"],
   },
-  { category: "Vector Database", items: ["Qdrant Cloud"] },
+  {
+    category: "Vector Database",
+    items: [
+      "Azure AI Search (vector index)",
+      "Qdrant Cloud",
+      "Switchable with one setting (VECTOR_STORE)",
+    ],
+  },
   {
     category: "Agent Orchestration",
-    items: ["Custom tool-calling loop (Gemini function calling)"],
+    items: [
+      "Custom tool-calling loop with a provider layer (Azure OpenAI or Gemini function calling)",
+    ],
   },
   { category: "Backend API", items: ["FastAPI (Python)"] },
   {
@@ -37,12 +53,17 @@ const STACK = [
   {
     category: "CI/CD",
     items: [
-      "GitHub Actions — test, build, and deploy automatically on every push",
+      "GitHub Actions — tests run on every pull request; test, build, and deploy on every push to main",
     ],
   },
   {
     category: "Deployment",
-    items: ["Render (backend API)", "Qdrant Cloud (vector database)"],
+    items: [
+      "Render (backend API)",
+      "Vercel (frontend)",
+      "Microsoft Azure (OpenAI + AI Search)",
+      "Qdrant Cloud (vector database)",
+    ],
   },
   { category: "Frontend", items: ["React, TanStack Start, Tailwind CSS"] },
   { category: "Testing", items: ["pytest"] },
