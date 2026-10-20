@@ -12,3 +12,4 @@ uvicorn[standard]
 google-genai
 tenacity
 pytest
+openai
