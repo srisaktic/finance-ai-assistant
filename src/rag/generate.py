@@ -2,7 +2,7 @@ import os
 #import anthropic
 #from google import genai
 from dotenv import load_dotenv
-from src.llm_client import call_gemini
+from src.llm_client import generate_text
 
 load_dotenv()
 
@@ -57,6 +57,5 @@ def generate_answer(question: str, chunks: list) -> str:
     context = format_context(chunks)
     prompt = ANSWER_PROMPT.format(context=context, question=question)
 
-    interaction = call_gemini(input=prompt, generation_config={"max_output_tokens": 1500})
-    return interaction.output_text.strip()
+    return generate_text(prompt, max_tokens=1500)
 

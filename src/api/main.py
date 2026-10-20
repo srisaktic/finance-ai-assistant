@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from src.agent.orchestrator import run_agent
-from src.llm_client import call_gemini
+from src.llm_client import generate_text
 
 app = FastAPI(title="Finance AI Assistant")
 
@@ -52,12 +52,12 @@ def ask(request: QuestionRequest):
 
 @app.post("/summarize", response_model=SummarizeResponse)
 def summarize(request: SummarizeRequest):
-    interaction = call_gemini(
-        system_instruction=(
+    summary = generate_text(
+        request.text,
+        system=(
             "Condense the following financial answer into 2-3 short, plain-English "
             "sentences. Keep the key numbers and facts. Do not add new information "
             "that isn't already in the text."
         ),
-        input=request.text,
     )
-    return SummarizeResponse(summary=interaction.output_text.strip())
+    return SummarizeResponse(summary=summary)

@@ -12,3 +12,5 @@ uvicorn[standard]
 google-genai
 tenacity
 pytest
+openai
+azure-search-documents
