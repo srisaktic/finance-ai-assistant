@@ -31,9 +31,5 @@ jobs:
       - name: Build
         run: bun run build
 
-      - name: Deploy to Vercel
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: npx vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+           # Deploys are done by Vercel's GitHub integration:
+      # pushes to main go to production, pull requests get a preview link.
