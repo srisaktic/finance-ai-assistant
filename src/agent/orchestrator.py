@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from src.agent.tools import TOOLS, TOOL_FUNCTIONS
 from src.logger import logger
 from src.llm_client import call_gemini
+from src.config import LLM_PROVIDER
 
 load_dotenv()
 
@@ -20,7 +21,7 @@ Rules:
 
 
 
-def run_agent(
+def _run_agent_gemini(
     question: str,
     previous_interaction_id: str | None = None,
     max_turns: int = 5,
@@ -74,6 +75,23 @@ def run_agent(
         "I wasn't able to fully answer this within the allowed number of steps.",
         interaction.id,
     )
+
+
+def run_agent(
+    question: str,
+    previous_interaction_id: str | None = None,
+    max_turns: int = 5,
+) -> tuple[str, str]:
+    """Run the agent loop for whichever provider is switched on."""
+    if LLM_PROVIDER == "gemini":
+        return _run_agent_gemini(question, previous_interaction_id, max_turns)
+
+    if LLM_PROVIDER == "azure":
+        raise NotImplementedError("Azure agent loop isn't added yet")
+
+    raise ValueError(f"Unknown LLM_PROVIDER: {LLM_PROVIDER!r}")
+
+
 
 
 if __name__ == "__main__":

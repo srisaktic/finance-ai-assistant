@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from qdrant_client import QdrantClient
 from qdrant_client.models import Filter, FieldCondition, MatchValue
 from src.usage_tracker import track_call
+from src.config import VECTOR_STORE
 
 load_dotenv()
 
@@ -26,7 +27,7 @@ def embed_query(query: str) -> list[float]:
 
 
 
-def search(query: str, top_k: int = 5, ticker: str | None = None):
+def _search_qdrant(query: str, top_k: int = 5, ticker: str | None = None):
     query_vector = embed_query(query)
 
     query_filter = None
@@ -41,6 +42,17 @@ def search(query: str, top_k: int = 5, ticker: str | None = None):
         query_filter=query_filter,
         limit=top_k,
     )
+
+
+def search(query: str, top_k: int = 5, ticker: str | None = None):
+    """Search the filings in whichever vector store is switched on."""
+    if VECTOR_STORE == "qdrant":
+        return _search_qdrant(query, top_k=top_k, ticker=ticker)
+
+    if VECTOR_STORE == "azure":
+        raise NotImplementedError("Azure AI Search isn't added yet")
+
+    raise ValueError(f"Unknown VECTOR_STORE: {VECTOR_STORE!r}")
 
 
 def print_results(query: str, results):
